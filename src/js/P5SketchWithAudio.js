@@ -4,6 +4,7 @@ import "p5/lib/addons/p5.sound";
 import * as p5 from "p5";
 import { Midi } from '@tonejs/midi'
 import PlayIcon from './functions/PlayIcon.js';
+import AnimatedShape from './classes/AnimatedShape.js';
 
 import audio from "../audio/hyperspace-no-2.ogg";
 import midi from "../audio/hyperspace-no-2.mid";
@@ -25,11 +26,18 @@ const P5SketchWithAudio = () => {
 
         p.PPQ = 3840 * 4;
 
+        p.tempo = 102;
+
+        p.secondsPerBar = 60 / p.tempo * 4;
+
         p.loadMidi = () => {
             Midi.fromUrl(midi).then(
                 function(result) {
-                    const noteSet1 = result.tracks[5].notes; // Synth 1
+                    console.log(result);
+                    const noteSet1 = result.tracks[0].notes.filter(note => [43, 44].includes(note.midi)); // Redrum 1 - Dublab BrushKit3
+                    const noteSet2 = result.tracks[4].notes; // Maelstrom 2 - Wood Arp
                     p.scheduleCueSet(noteSet1, 'executeCueSet1');
+                    p.scheduleCueSet(noteSet2, 'executeCueSet2');
                     p.audioLoaded = true;
                     document.getElementById("loader").classList.add("loading--complete");
                     document.getElementById("play-icon").classList.remove("fade-out");
@@ -60,20 +68,98 @@ const P5SketchWithAudio = () => {
 
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
-            p.background(0);
+            p.grid = p.createGraphics(p.canvasWidth, p.canvasHeight);
+            p.rectMode(p.CENTER);
+            p.grid.rectMode(p.CENTER);
+            p.frameRate(30);
+            p.strokeWeight(8);
+            //glow
+            p.drawingContext.shadowBlur = 32;
+            p.drawingContext.shadowColor = '#00ffff';
         }
 
         p.draw = () => {
             if(p.audioLoaded && p.song.isPlaying()){
-
+                p.clear();
+                p.image(p.grid, 0, 0);
+                p.fill(27, 17, 77);
+                p.stroke(0, 255, 255);
+                p.rect(p.width / 2, p.height / 2, p.width / 16, p.width / 16);
+                p.noFill();
+                for (let i = 0; i < p.bassLineShapes.length; i++) {
+                    const shape = p.bassLineShapes[i];
+                    shape.draw();
+                    shape.update();
+                }
             }
         }
 
+        p.drawGrid = () => {
+            const shapeSize = p.width / 16,
+                linesPerSide = 6;
+            p.grid.stroke('#e722f2');
+            p.grid.strokeWeight(8);
+            for (let i = 0; i < linesPerSide; i++) {
+                //top
+                p.grid.line(
+                    p.width / 2 - shapeSize / 2 + (shapeSize / linesPerSide * i), 
+                    p.height / 2 - shapeSize / 2, 
+                    0 + (p.width / linesPerSide * i), 
+                    p.height / 2 - p.width / 2
+                );
+
+                //right
+                p.grid.line(
+                    p.width / 2 + shapeSize / 2, 
+                    p.height / 2 - shapeSize / 2 + (shapeSize / linesPerSide * i), 
+                    p.width, 
+                    p.height / 2 - p.width / 2  + (p.width / linesPerSide * i)
+                );
+
+                //bottom
+                p.grid.line(
+                    p.width / 2 + shapeSize / 2  - (shapeSize / linesPerSide * i), 
+                    p.height / 2 + shapeSize / 2, 
+                    p.width - (p.width / linesPerSide * i),
+                    p.height / 2 + p.width / 2
+                );
+
+                //left
+                p.grid.line(
+                    p.width / 2 - shapeSize / 2, 
+                    p.height / 2 + shapeSize / 2 - (shapeSize / linesPerSide * i), 
+                    0, 
+                    p.height / 2 + p.width / 2 - (p.width / linesPerSide * i)
+                );
+            }
+        }
+
+        p.bassLineShapes = [];
+
         p.executeCueSet1 = (note) => {
-            p.background(p.random(255), p.random(255), p.random(255));
-            p.fill(p.random(255), p.random(255), p.random(255));
-            p.noStroke();
-            p.ellipse(p.width / 2, p.height / 2, p.width / 4, p.width / 4);
+            const { currentCue } = note;
+            if(currentCue === 1) {
+                p.drawGrid();
+            }
+            p.bassLineShapes.push(
+                new AnimatedShape(
+                    p,
+                    p.color('#e722f2'),
+                    p.width / 16, 
+                    p.secondsPerBar
+                )
+            );
+        }
+
+        p.executeCueSet2 = (note) => {
+            p.bassLineShapes.push(
+                new AnimatedShape(
+                    p,
+                    p.color('#f7de74'),
+                    p.width / 16, 
+                    p.secondsPerBar
+                )
+            );
         }
 
         p.mousePressed = () => {
