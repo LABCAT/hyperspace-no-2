@@ -34,13 +34,17 @@ const P5SketchWithAudio = () => {
             Midi.fromUrl(midi).then(
                 function(result) {
                     console.log(result);
-                    const noteSet1 = result.tracks[0].notes.filter(note => [43, 44].includes(note.midi)); // Redrum 1 - Dublab BrushKit3
-                    const noteSet2 = result.tracks[4].notes; // Maelstrom 2 - Wood Arp
+                    const noteSet1 = result.tracks[0].notes.filter(note => [36, 37].includes(note.midi)); // Redrum 1 - Dublab BrushKit3
+                    const noteSet2 = result.tracks[4].notes; // Maelstrom 1 - Zerolizer
+                    const noteSet3 = result.tracks[5].notes; // Maelstrom 2 - Wood Arp
+                    const controlChanges = Object.assign({},result.tracks[7].controlChanges); // Filter 1 - Maelstrom 3 - 1FingerFun
                     p.scheduleCueSet(noteSet1, 'executeCueSet1');
                     p.scheduleCueSet(noteSet2, 'executeCueSet2');
-                    p.audioLoaded = true;
+                    p.scheduleCueSet(noteSet3, 'executeCueSet3');
+                    p.scheduleCueSet(controlChanges[Object.keys(controlChanges)[0]], 'executeCueSet4');
                     document.getElementById("loader").classList.add("loading--complete");
                     document.getElementById("play-icon").classList.remove("fade-out");
+                    p.audioLoaded = true;
                 }
             );
             
@@ -82,10 +86,11 @@ const P5SketchWithAudio = () => {
             if(p.audioLoaded && p.song.isPlaying()){
                 p.clear();
                 p.image(p.grid, 0, 0);
-                p.fill(27, 17, 77);
-                p.stroke(0, 255, 255);
-                p.rect(p.width / 2, p.height / 2, p.width / 16, p.width / 16);
                 p.noFill();
+                if(p.innerSquareColour){
+                    p.stroke(p.innerSquareColour);
+                    p.rect(p.width / 2, p.height / 2, p.width / 16, p.width / 16);
+                }
                 for (let i = 0; i < p.bassLineShapes.length; i++) {
                     const shape = p.bassLineShapes[i];
                     shape.draw();
@@ -94,11 +99,16 @@ const P5SketchWithAudio = () => {
             }
         }
 
-        p.drawGrid = () => {
+        p.drawGrid = (alphaAmount) => {
             const shapeSize = p.width / 16,
-                linesPerSide = 6;
-            p.grid.stroke('#e722f2');
+                linesPerSide = 6,
+                alphaLevel = Math.floor(alphaAmount);
+            p.grid.clear();
             p.grid.strokeWeight(8);
+            p.grid.fill(27, 17, 77, alphaLevel);
+            p.grid.stroke(0, 255, 255, alphaLevel);
+            p.grid.rect(p.width / 2, p.height / 2, p.width / 16, p.width / 16);
+            p.grid.noFill();
             for (let i = 0; i < linesPerSide; i++) {
                 //top
                 p.grid.line(
@@ -132,34 +142,59 @@ const P5SketchWithAudio = () => {
                     p.height / 2 + p.width / 2 - (p.width / linesPerSide * i)
                 );
             }
+
+            for (let i = 0; i < 8; i++) {
+                const rectSize = p.width / 16 + (p.width / 8 * i); 
+                p.grid.stroke(0, 255, 255, alphaLevel);
+                p.grid.rect(p.width / 2, p.height / 2, rectSize, rectSize);
+            }
         }
+
+        p.innerSquareColour = false;
+
+        p.executeCueSet1 = (note) => {
+            const { midi } = note;
+            p.innerSquareColour = midi === 36 ? p.color('#1B114D') : p.color('#ff0cb8');
+            
+            p.bassLineShapes.push(
+                new AnimatedShape(
+                    p,
+                    p.innerSquareColour,
+                    p.width / 16, 
+                    p.secondsPerBar / 2
+                )
+            );
+        }
+
+        p.bassLineColour = p.color('#f7de74');
 
         p.bassLineShapes = [];
 
-        p.executeCueSet1 = (note) => {
-            const { currentCue } = note;
-            if(currentCue === 1) {
-                p.drawGrid();
-            }
+        p.executeCueSet2 = (note) => {
+            p.bassLineColour = p.color(
+                p.random(255),
+                p.random(255),
+                p.random(255)
+            );
+        }
+
+        p.executeCueSet3 = (note) => {
             p.bassLineShapes.push(
                 new AnimatedShape(
                     p,
-                    p.color('#e722f2'),
+                    p.bassLineColour,
                     p.width / 16, 
-                    p.secondsPerBar
+                    p.secondsPerBar / 2
                 )
             );
         }
 
-        p.executeCueSet2 = (note) => {
-            p.bassLineShapes.push(
-                new AnimatedShape(
-                    p,
-                    p.color('#f7de74'),
-                    p.width / 16, 
-                    p.secondsPerBar
-                )
-            );
+        p.executeCueSet4 = (note) => {
+            const { value } = note,
+                alphaLevel = p.map(value, 0.49, 1, 0, 255);
+            if(value < 1) {
+                p.drawGrid(alphaLevel);
+            }
         }
 
         p.mousePressed = () => {
