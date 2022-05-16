@@ -150,57 +150,20 @@ const P5SketchWithAudio = () => {
             }
         }
 
-        p.drawTriangleGrid = (alphaAmount) => {
-            const shapeSize = p.width / 16,
-                linesPerSide = 6,
-                alphaLevel = Math.floor(alphaAmount);
-            p.grid.clear();
-            p.grid.strokeWeight(8);
-            p.grid.fill(27, 17, 77, alphaLevel);
-            p.grid.stroke(0, 255, 255, alphaLevel);
-            // p.grid.rect(p.width / 2, p.height / 2, p.width / 16, p.width / 16);
-            let x1 = p.width / 2, y1 = p.height / 2 - p.width / 32;
-            let x2 = p.width / 2  - p.width / 32, y2 = p.height / 2 + p.width / 32;
-            let x3 = p.width / 2  + p.width / 32, y3 = p.height / 2 + p.width / 32;
-            p.grid.triangle(x1, y1, x2, y2, x3, y3);
-            p.grid.noFill();
-            
-            for (let i = 0; i < linesPerSide; i++) {
-
-                //right
-                p.grid.line(
-                    x1, 
-                    p.height / 2 - shapeSize / 2 + (shapeSize / linesPerSide * i), 
-                    p.width, 
-                    p.height / 2 - p.width / 2  + (p.width / linesPerSide * i)
-                );
-            }
-
-            for (let i = 0; i < 8; i++) {
-                y1 = p.height / 2 - p.width / 32 - (p.width / 8 * i);
-                x2 = p.width / 2  - p.width / 32 - (p.width / 8 * i);
-                y2 = p.height / 2 + p.width / 32 + (p.width / 8 * i);
-                x3 = p.width / 2  + p.width / 32 + (p.width / 8 * i);
-                y3 = p.height / 2 + p.width / 32 + (p.width / 8 * i);
-                p.grid.stroke(0, 255, 255, alphaLevel);
-                p.grid.triangle(x1, y1, x2, y2, x3, y3);
-            }
-        }
-
         p.innerSquareColour = false;
 
         p.executeCueSet1 = (note) => {
             const { midi } = note;
             p.innerSquareColour = midi === 36 ? p.color('#1B114D') : p.color('#ff0cb8');
             
-            p.bassLineShapes.push(
-                new AnimatedShape(
-                    p,
-                    p.innerSquareColour,
-                    p.width / 16, 
-                    p.secondsPerBar / 2
-                )
-            );
+            // p.bassLineShapes.push(
+            //     new AnimatedShape(
+            //         p,
+            //         p.innerSquareColour,
+            //         p.width / 16, 
+            //         p.secondsPerBar / 2
+            //     )
+            // );
         }
 
         p.bassLineColour = p.color('#f7de74');
@@ -208,10 +171,18 @@ const P5SketchWithAudio = () => {
         p.bassLineShapes = [];
 
         p.executeCueSet2 = (note) => {
-            p.bassLineColour = p.color(
-                p.random(255),
-                p.random(255),
-                p.random(255)
+            const r = p.random(255),
+                g = p.random(255),
+                b = p.random(255);
+            p.bassLineColour = p.color(r, g, b);
+            p.bassLineShapes.push(
+                new AnimatedShape(
+                    p,
+                    p.color(r, g, b, 127),
+                    p.width / 16, 
+                    p.secondsPerBar / 2,
+                    p.width / 16 + p.width / 8,
+                )
             );
         }
 
@@ -230,7 +201,7 @@ const P5SketchWithAudio = () => {
             const { value } = note,
                 alphaLevel = p.map(value, 0.49, 1, 0, 255);
             if(value < 1) {
-                p.drawTriangleGrid(alphaLevel);
+                p.drawGrid(alphaLevel);
             }
         }
 
