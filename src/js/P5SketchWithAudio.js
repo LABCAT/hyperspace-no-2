@@ -171,6 +171,7 @@ const P5SketchWithAudio = () => {
         p.bassLineShapes = [];
 
         p.executeCueSet2 = (note) => {
+            const { currentCue } = note;
             const r = p.random(255),
                 g = p.random(255),
                 b = p.random(255);
@@ -184,6 +185,11 @@ const P5SketchWithAudio = () => {
                     p.width / 16 + p.width / 8,
                 )
             );
+            
+            if(currentCue % 6 === 1) {
+                const root = document.documentElement;
+                root.style.setProperty("--canvas-bg", "var(--bg-gradient-" + Math.floor(p.random(1, 6)) + ')');
+            }
         }
 
         p.executeCueSet3 = (note) => {
