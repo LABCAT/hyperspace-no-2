@@ -32,8 +32,8 @@ export default class AnimatedShape {
             this.p.stroke(this.colour);
             this.p.noFill();
             this.maxSize && this.p.fill(this.colour);
-            this.p.rect(this.p.width / 2, this.p.height / 2, this.size, this.size);
-            !this.maxSize && this.p.rect(this.p.width / 2, this.p.height / 2, this.innerSize, this.innerSize);
+            this.p.rect(0, 0, this.size, this.size);
+            !this.maxSize && this.p.rect(0, 0, this.innerSize, this.innerSize);
         }
     }
 }

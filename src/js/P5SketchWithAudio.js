@@ -70,10 +70,19 @@ const P5SketchWithAudio = () => {
             }
         } 
 
+        p.rotationOptions = [0, 15, 30, 45, 60, 75];
+
+        p.currentRotation = 0;
+
+        p.clockwiseRotation = true; 
+
+        p.canRotate = false;
+
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
-            p.grid = p.createGraphics(p.canvasWidth, p.canvasHeight);
+            p.grid = p.createGraphics(p.canvasWidth * 2, p.canvasWidth * 2);
             p.rectMode(p.CENTER);
+            p.angleMode(p.DEGREES);
             p.grid.rectMode(p.CENTER);
             p.frameRate(30);
             p.strokeWeight(8);
@@ -85,16 +94,21 @@ const P5SketchWithAudio = () => {
         p.draw = () => {
             if(p.audioLoaded && p.song.isPlaying()){
                 p.clear();
-                p.image(p.grid, 0, 0);
+                p.translate(p.width / 2, p.height / 2);
+                p.rotate(p.currentRotation);
+                p.image(p.grid, -p.width, -p.height);
                 p.noFill();
                 if(p.innerSquareColour){
                     p.stroke(p.innerSquareColour);
-                    p.rect(p.width / 2, p.height / 2, p.width / 16, p.width / 16);
+                    p.rect(0, 0, p.width / 16, p.width / 16);
                 }
                 for (let i = 0; i < p.bassLineShapes.length; i++) {
                     const shape = p.bassLineShapes[i];
                     shape.draw();
                     shape.update();
+                }
+                if(p.canRotate){
+                    p.currentRotation = p.clockwiseRotation ? p.currentRotation + 1 : p.currentRotation - 1;
                 }
             }
         }
@@ -102,51 +116,55 @@ const P5SketchWithAudio = () => {
         p.drawGrid = (alphaAmount) => {
             const shapeSize = p.width / 16,
                 linesPerSide = 6,
-                alphaLevel = Math.floor(alphaAmount);
+                alphaLevel = Math.floor(alphaAmount),
+                root = document.documentElement,
+                gridColour = getComputedStyle(root).getPropertyValue("--grid-colour-" + p.gridVersion),
+                strokeColour = p.color(gridColour);
+            p.drawingContext.shadowColor = gridColour;
             p.grid.clear();
             p.grid.strokeWeight(8);
             p.grid.fill(27, 17, 77, alphaLevel);
-            p.grid.stroke(0, 255, 255, alphaLevel);
-            p.grid.rect(p.width / 2, p.height / 2, p.width / 16, p.width / 16);
+            strokeColour.setAlpha(alphaLevel)
+            p.grid.stroke(strokeColour);
+            p.grid.rect(p.width, p.height, p.width / 16, p.width / 16);
             p.grid.noFill();
             for (let i = 0; i < linesPerSide; i++) {
-                //top
+                // //top
                 p.grid.line(
-                    p.width / 2 - shapeSize / 2 + (shapeSize / linesPerSide * i), 
-                    p.height / 2 - shapeSize / 2, 
-                    0 + (p.width / linesPerSide * i), 
-                    p.height / 2 - p.width / 2
+                    p.width - shapeSize / 2 + (shapeSize / linesPerSide * i), 
+                    p.height - shapeSize / 2, 
+                    0 + (p.width * 2 / linesPerSide * i), 
+                    p.height - p.width
                 );
 
                 //right
                 p.grid.line(
-                    p.width / 2 + shapeSize / 2, 
-                    p.height / 2 - shapeSize / 2 + (shapeSize / linesPerSide * i), 
-                    p.width, 
-                    p.height / 2 - p.width / 2  + (p.width / linesPerSide * i)
+                    p.width + shapeSize / 2, 
+                    p.height - shapeSize / 2 + (shapeSize / linesPerSide * i), 
+                    p.width * 2, 
+                    p.height - p.width  + (p.width * 2 / linesPerSide * i)
                 );
 
-                //bottom
+                // //bottom
                 p.grid.line(
-                    p.width / 2 + shapeSize / 2  - (shapeSize / linesPerSide * i), 
-                    p.height / 2 + shapeSize / 2, 
-                    p.width - (p.width / linesPerSide * i),
-                    p.height / 2 + p.width / 2
+                    p.width + shapeSize / 2  - (shapeSize / linesPerSide * i), 
+                    p.height + shapeSize / 2, 
+                    p.width * 2 - (p.width * 2 / linesPerSide * i),
+                    p.height + p.width
                 );
 
                 //left
                 p.grid.line(
-                    p.width / 2 - shapeSize / 2, 
-                    p.height / 2 + shapeSize / 2 - (shapeSize / linesPerSide * i), 
+                    p.width - shapeSize / 2, 
+                    p.height + shapeSize / 2 - (shapeSize / linesPerSide * i), 
                     0, 
-                    p.height / 2 + p.width / 2 - (p.width / linesPerSide * i)
+                    p.height + p.width - (p.width * 2 / linesPerSide * i)
                 );
             }
-
-            for (let i = 0; i < 8; i++) {
-                const rectSize = p.width / 16 + (p.width / 8 * i); 
-                p.grid.stroke(0, 255, 255, alphaLevel);
-                p.grid.rect(p.width / 2, p.height / 2, rectSize, rectSize);
+            
+            for (let i = 0; i < 48; i++) {
+                const rectSize = p.width / 16 + (p.width / 32 * i); 
+                p.grid.rect(p.width, p.height, rectSize, rectSize);
             }
         }
 
@@ -155,26 +173,24 @@ const P5SketchWithAudio = () => {
         p.executeCueSet1 = (note) => {
             const { midi } = note;
             p.innerSquareColour = midi === 36 ? p.color('#1B114D') : p.color('#ff0cb8');
-            
-            // p.bassLineShapes.push(
-            //     new AnimatedShape(
-            //         p,
-            //         p.innerSquareColour,
-            //         p.width / 16, 
-            //         p.secondsPerBar / 2
-            //     )
-            // );
         }
 
         p.bassLineColour = p.color('#f7de74');
 
         p.bassLineShapes = [];
 
+        p.gridVersion = 1;
+
         p.executeCueSet2 = (note) => {
             const { currentCue } = note;
             const r = p.random(255),
                 g = p.random(255),
-                b = p.random(255);
+                b = p.random(255),
+                rOptionsCopy = p.rotationOptions.slice();
+            rOptionsCopy.splice(p.rotationOptions.indexOf(p.currentRotation), 1)
+            p.currentRotation = p.random(rOptionsCopy);
+            p.canRotate = Math.random() < 0.5;
+            p.clockwiseRotation = Math.random() < 0.5;
             p.bassLineColour = p.color(r, g, b);
             p.bassLineShapes.push(
                 new AnimatedShape(
@@ -187,8 +203,12 @@ const P5SketchWithAudio = () => {
             );
             
             if(currentCue % 6 === 1) {
-                const root = document.documentElement;
-                root.style.setProperty("--canvas-bg", "var(--bg-gradient-" + Math.floor(p.random(1, 6)) + ')');
+                const root = document.documentElement,
+                    gridOptions = [1,2,3,4,5,6];
+                gridOptions.splice(p.gridVersion - 1, 1);
+                p.gridVersion= p.random(gridOptions);
+                root.style.setProperty("--canvas-bg", "var(--bg-gradient-" + p.gridVersion + ')');
+                p.drawGrid();
             }
         }
 

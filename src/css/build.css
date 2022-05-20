@@ -8,6 +8,7 @@
       rgba(37, 146, 225, 1) 67.59%,
       rgba(12, 219, 245, 1) 89.28%,
       rgba(0, 255, 255, 1) 100.13%);
+  --grid-colour-1:rgba(0, 255, 255, 1);
   --bg-gradient-2: linear-gradient(0deg,
       #ffd319 -8.35%,
       #ffb21c -5.1%,
@@ -17,6 +18,7 @@
       #f222ff 67.59%,
       #bf20ff 89.28%,
       #8c1eff 100.13%);
+  --grid-colour-2:#8c1eff;
   --bg-gradient-3: linear-gradient(0deg,
       #12c2e9 -8.35%,
       #3faeea -5.1%,
@@ -26,6 +28,7 @@
       #c471ed 67.59%,
       #dd60a3 89.28%,
       #f64f59 100.13%);
+  --grid-colour-3:#12c2e9;
   --bg-gradient-4: linear-gradient(0deg,
       #1F4037 -8.35%,
       #2F574A -5.1%,
@@ -35,6 +38,7 @@
       #7BC6A4 67.59%,
       #8ADCB6 89.28%,
       #99F2C8 100.13%);
+  --grid-colour-4:#99F2C8;
   --bg-gradient-5: linear-gradient(0deg,
       #A7EDFA -8.35%,
       #9AEAF4 -5.1%,
@@ -44,6 +48,7 @@
       #F0C5DF 67.59%,
       #DC99BA 89.28%,
       #C86D95 100.13%);
+  --grid-colour-5: #C86D95;
   --bg-gradient-6: linear-gradient(0deg,
       #E602BC -8.35%,
       #AE20C5 -5.1%,
@@ -53,6 +58,7 @@
       #023D6F 67.59%,
       #011F38 89.28%,
       #000000 100.13%);
+  --grid-colour-6: #000000;
   --canvas-bg: var(--bg-gradient-1);
 }
 
